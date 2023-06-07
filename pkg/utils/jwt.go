@@ -1,21 +1,20 @@
 package utils
 
 import (
-	"time"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/namcchan/go-chatting/configs"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func GenerateTokens(userId string) (string, string, error) {
+func GenerateTokens(userId primitive.ObjectID, accessExpires int64, refreshExpires int64) (string, string, error) {
 	accessClaims := jwt.MapClaims{
 		"userId": userId,
-		"exp":    time.Now().Add(time.Minute * 15).Unix(),
+		"exp":    accessExpires,
 	}
 
 	refreshClaims := jwt.MapClaims{
 		"userId": userId,
-		"exp":    time.Now().Add(time.Minute * 24 * 7).Unix(),
+		"exp":    refreshExpires,
 	}
 
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)

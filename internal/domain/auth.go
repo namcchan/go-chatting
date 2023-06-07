@@ -14,7 +14,7 @@ type LoginPayload struct {
 
 type AuthUseCase interface {
 	Register(payload *RegisterPayload) error
-	Login(payload *LoginPayload) (*TokenData, error)
+	Login(payload *LoginPayload) (*Tokens, error)
 	ForgotPassword() error
 	ResetPassword(resetPasswordToken string, password string) error
 	GetMe() (*User, error)

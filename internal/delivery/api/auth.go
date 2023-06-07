@@ -18,7 +18,7 @@ func AuthRegister(r *gin.RouterGroup) {
 	router := r.Group("auth")
 
 	router.POST("register", handleRegister)
-	router.POST("login")
+	router.POST("login", handleLogin)
 	router.POST("forgot-password")
 	router.POST("reset-password")
 	router.GET("me")
@@ -52,7 +52,27 @@ func handleRegister(c *gin.Context) {
 	})
 }
 
-//func handleLogin(c *gin.Context) {
-//	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-//	defer cancel()
-//}
+func handleLogin(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var payload domain.LoginPayload
+
+	if err := c.BindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Status": http.StatusBadRequest, "error": err.Error()})
+		return
+	}
+
+	authUseCase := usecase.NewAuthUseCase(ctx)
+	tokens, err := authUseCase.Login(&payload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Username or password incorrect",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": tokens,
+	})
+}

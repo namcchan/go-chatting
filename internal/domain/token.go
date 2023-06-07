@@ -1,13 +1,11 @@
 package domain
 
-import "time"
-
-type TokenData struct {
-	access  Token
-	refresh Token
+type Tokens struct {
+	Access  TokenPayload `json:"access"`
+	Refresh TokenPayload `json:"refresh"`
 }
 
-type Token struct {
-	value   string
-	expires time.Time
+type TokenPayload struct {
+	Value   string `json:"value"`
+	Expires int64  `json:"expires"`
 }
