@@ -33,7 +33,7 @@ func (ac *authUseCase) Register(payload *domain.RegisterPayload) error {
 			bson.M{"email": payload.Email},
 		},
 	}
-	existedUser, err := userRepository.FindOne(filter)
+	existedUser, err := userRepository.FindOne(filter, bson.M{})
 	if err != nil {
 		return err
 	}
@@ -43,10 +43,12 @@ func (ac *authUseCase) Register(payload *domain.RegisterPayload) error {
 	}
 
 	err = userRepository.Create(&domain.User{
-		Username: payload.Username,
-		Email:    payload.Email,
-		Name:     payload.Name,
-		Password: password,
+		Username:  payload.Username,
+		Email:     payload.Email,
+		Name:      payload.Name,
+		Password:  password,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	})
 
 	if err != nil {
@@ -61,7 +63,7 @@ func (ac *authUseCase) Login(payload *domain.LoginPayload) (*domain.Tokens, erro
 
 	filter := bson.M{"username": payload.Username}
 
-	user, err := userRepository.FindOne(filter)
+	user, err := userRepository.FindOne(filter, bson.M{})
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"github.com/namcchan/go-chatting/internal/domain"
+	"github.com/namcchan/go-chatting/internal/middlewares"
 	"github.com/namcchan/go-chatting/internal/usecase"
 	"net/http"
 	"time"
@@ -21,7 +22,7 @@ func AuthRegister(r *gin.RouterGroup) {
 	router.POST("login", handleLogin)
 	router.POST("forgot-password")
 	router.POST("reset-password")
-	router.GET("me")
+	router.GET("me", middlewares.CheckAuth, GetMe)
 }
 
 func handleRegister(c *gin.Context) {
@@ -65,6 +66,7 @@ func handleLogin(c *gin.Context) {
 
 	authUseCase := usecase.NewAuthUseCase(ctx)
 	tokens, err := authUseCase.Login(&payload)
+
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Username or password incorrect",
@@ -75,4 +77,8 @@ func handleLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"data": tokens,
 	})
+}
+
+func GetMe(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"data": c.MustGet("currentUser")})
 }

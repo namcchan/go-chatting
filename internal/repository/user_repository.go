@@ -107,10 +107,15 @@ func (ur *userRepository) Create(document *domain.User) error {
 	return nil
 }
 
-func (ur *userRepository) FindOne(filter bson.M) (*domain.User, error) {
+func (ur *userRepository) FindOne(filter bson.M, projection bson.M) (*domain.User, error) {
 	var user *domain.User
+	opts := options.FindOne()
 
-	err := ur.userCollection.FindOne(ur.ctx, filter).Decode(&user)
+	if projection != nil {
+		opts.SetProjection(projection)
+	}
+
+	err := ur.userCollection.FindOne(ur.ctx, filter, opts).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return user, nil // Return empty user if no document found
