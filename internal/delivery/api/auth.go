@@ -5,6 +5,7 @@ import (
 	"github.com/namcchan/go-chatting/internal/domain"
 	"github.com/namcchan/go-chatting/internal/middlewares"
 	"github.com/namcchan/go-chatting/internal/usecase"
+	"github.com/namcchan/go-chatting/pkg/response"
 	"net/http"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// var userCollection *mongo.Collection = configs.GetCollection("users")
 var validate = validator.New()
 
 func AuthRegister(r *gin.RouterGroup) {
@@ -20,43 +20,41 @@ func AuthRegister(r *gin.RouterGroup) {
 
 	router.POST("register", handleRegister)
 	router.POST("login", handleLogin)
-	router.POST("forgot-password")
+	router.POST("forgot-password", handleForgotPassword)
 	router.POST("reset-password")
 	router.GET("me", middlewares.CheckAuth, GetMe)
 }
 
 func handleRegister(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	var registerPayload domain.RegisterPayload
 	defer cancel()
 
+	var registerPayload domain.RegisterPayload
+	authUseCase := usecase.NewAuthUseCase(ctx)
+
 	if err := c.BindJSON(&registerPayload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"Status": http.StatusBadRequest, "error": err.Error()})
+		c.JSON(http.StatusBadRequest, response.Error(err.Error()))
 		return
 	}
 
 	if validationErr := validate.Struct(&registerPayload); validationErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "error": validationErr.Error()})
+		c.JSON(http.StatusBadRequest, response.Error(validationErr.Error()))
 		return
 	}
 
-	authUseCase := usecase.NewAuthUseCase(ctx)
-	err := authUseCase.Register(&registerPayload)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := authUseCase.Register(&registerPayload); err != nil {
+		c.JSON(http.StatusInternalServerError, response.Error(""))
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "success",
-	})
+	c.JSON(http.StatusBadRequest, response.Success(nil))
 }
 
 func handleLogin(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	authUseCase := usecase.NewAuthUseCase(ctx)
 	var payload domain.LoginPayload
 
 	if err := c.BindJSON(&payload); err != nil {
@@ -64,21 +62,35 @@ func handleLogin(c *gin.Context) {
 		return
 	}
 
-	authUseCase := usecase.NewAuthUseCase(ctx)
 	tokens, err := authUseCase.Login(&payload)
-
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Username or password incorrect",
-		})
+		c.JSON(http.StatusBadRequest, response.Error(err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": tokens,
-	})
+	c.JSON(http.StatusBadRequest, response.Success(tokens))
+}
+
+func handleForgotPassword(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var payload domain.ForgotPasswordPayload
+	authUseCase := usecase.NewAuthUseCase(ctx)
+
+	if err := c.BindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, response.Error(err.Error()))
+		return
+	}
+
+	if err := authUseCase.ForgotPassword(); err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusBadRequest, response.Success(nil))
 }
 
 func GetMe(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"data": c.MustGet("currentUser")})
+	c.JSON(http.StatusBadRequest, response.Success(c.MustGet("currentUser")))
 }

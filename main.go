@@ -7,7 +7,7 @@ import (
 	"github.com/namcchan/go-chatting/database"
 	"github.com/namcchan/go-chatting/internal/delivery/api"
 	"github.com/namcchan/go-chatting/internal/delivery/ws"
-	"github.com/namcchan/go-chatting/pkg/utils"
+	"github.com/namcchan/go-chatting/internal/middlewares"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
@@ -31,9 +31,9 @@ func main() {
 
 	r := gin.Default()
 
-	r.Use(utils.CORSMiddleware())
-	r.Use(utils.RequestIDMiddleware())
-	r.Use(configs.ErrorHandler())
+	r.Use(middlewares.CORSMiddleware())
+	r.Use(middlewares.RequestIDMiddleware())
+	r.Use(middlewares.ErrorHandler())
 
 	v1 := r.Group("api/v1")
 
@@ -50,7 +50,7 @@ func main() {
 	api.RoomRegister(v1)
 	api.AttachmentRegister(v1)
 
-	r.NoRoute(configs.NotFoundHandler)
+	r.NoRoute(middlewares.NotFoundHandler())
 
 	_ = r.Run()
 }

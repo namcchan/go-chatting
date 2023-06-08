@@ -12,6 +12,10 @@ type LoginPayload struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type ForgotPasswordPayload struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
 type AuthUseCase interface {
 	Register(payload *RegisterPayload) error
 	Login(payload *LoginPayload) (*Tokens, error)

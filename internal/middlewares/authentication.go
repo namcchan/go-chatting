@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/namcchan/go-chatting/configs"
 	"github.com/namcchan/go-chatting/internal/repository"
+	"github.com/namcchan/go-chatting/pkg/response"
 	"github.com/namcchan/go-chatting/pkg/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,7 +16,7 @@ import (
 func CheckAuth(c *gin.Context) {
 	authorization := c.GetHeader("Authorization")
 	if authorization == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, response.Error("Unauthorized"))
 		c.Abort()
 		return
 	}
@@ -24,15 +25,13 @@ func CheckAuth(c *gin.Context) {
 
 	claims, err := utils.VerifyToken(accessToken, configs.GetEnv().AccessTokenSecret)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		c.Abort()
+		c.Error(err)
 		return
 	}
 
 	objectID, err := primitive.ObjectIDFromHex(claims["userId"].(string))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		c.Abort()
+		c.Error(err)
 		return
 	}
 
@@ -43,7 +42,7 @@ func CheckAuth(c *gin.Context) {
 	user, err := userRepo.FindOne(filter, projection)
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, response.Error("Unauthorized"))
 		c.Abort()
 		return
 	}

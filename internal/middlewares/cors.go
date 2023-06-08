@@ -1,10 +1,9 @@
-package utils
+package middlewares
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func CORSMiddleware() gin.HandlerFunc {
